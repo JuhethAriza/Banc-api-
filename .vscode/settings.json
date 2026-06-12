@@ -1,0 +1,7 @@
+{
+  "go.useLanguageServer": true,
+  "gopls": {
+    "staticcheck": true
+  },
+  "go.formatTool": "gofmt"
+}
