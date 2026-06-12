@@ -1,4 +1,4 @@
-module url
+module banc-api
 
 go 1.26.1
 

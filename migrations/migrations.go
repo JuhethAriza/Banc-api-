@@ -1,18 +1,19 @@
 package migrations
 
 import (
-	"log"
-
-	_ "github.com/lib/pq"
-	"gorm.io/gorm"
+	"banc-api/internal/users"
+	"banc-api/pkg/database"
 )
 
-var db *gorm.DB
+func RunMigrations() error {
 
-func MigarateDatabase() {
-	err := AutoMigrate()
+	err := database.DB.AutoMigrate(
+		&users.User{},
+	)
 
 	if err != nil {
-		log.Fatal("Error migrating database: ", err)
+		return err
 	}
+
+	return nil
 }

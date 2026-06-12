@@ -1,5 +1,10 @@
 package config
 
+import "os"
+
 func GetDatabaseURL() string {
-	return "postgresql://neondb_owner:bXH9w@example.com/neondb?sslmode=disable"
+	if url := os.Getenv("DATABASE_URL"); url != "" {
+		return url
+	}
+	return "postgresql://postgres:postgres@localhost:5432/neondb?sslmode=disable"
 }
