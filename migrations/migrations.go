@@ -1,14 +1,15 @@
 package migrations
 
 import (
-	"banc-api/internal/users"
-	"banc-api/pkg/database"
+	"banc-api/internal/domain/entity"
+
+	"gorm.io/gorm"
 )
 
-func RunMigrations() error {
-
-	err := database.DB.AutoMigrate(
-		&users.User{},
+// RunMigrations ejecuta las migraciones de la base de datos.
+func RunMigrations(db *gorm.DB) error {
+	err := db.AutoMigrate(
+		&entity.User{},
 	)
 
 	if err != nil {

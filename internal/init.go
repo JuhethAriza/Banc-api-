@@ -1,26 +1,58 @@
 package internal
 
 import (
-	"banc-api/internal/users"
+	"banc-api/internal/application/usecase"
+	"banc-api/internal/domain/repository"
+	"banc-api/internal/interface/http"
+	"banc-api/internal/infrastructure/persistence"
 	"banc-api/pkg/database"
 
 	"github.com/gin-gonic/gin"
 )
 
-var router *gin.Engine
+// Container de dependencias de la aplicación.
+type AppContainer struct {
+	UserRepo       repository.UserRepository
+	AccountRepo    repository.AccountRepository
+	UserUseCase    *usecase.UserUseCase
+	AccountUseCase *usecase.AccountUseCase
+	UserHandler    *http.UserHandler
+	AccountHandler *http.AccountHandler
+}
 
-// SetupRoutes inicializa todas las capas y registra las rutas
-// Se llama desde main.go
-func SetupRoutes() *gin.Engine {
-	router = gin.Default()
+// NewAppContainer inicializa todas las dependencias de la aplicación.
+// Sigue el principio de inversión de dependencias: las capas superiores
+// dependen de abstracciones, no de implementaciones.
+func NewAppContainer(db *database.DB) *AppContainer {
+	// Capa de Infraestructura: implementaciones concretas
+	userRepo := persistence.NewUserRepository(db.Instance())
+	accountRepo := persistence.NewAccountRepository(db.Instance())
 
-	// Inicializar los usuarios con la conexión a la BD
-	users.InitUsers(database.DB)
+	// Capa de Aplicación: casos de uso
+	userUseCase := usecase.NewUserUseCase(userRepo)
+	accountUseCase := usecase.NewAccountUseCase(accountRepo)
 
-	// Registrar rutas de usuarios
-	users.RegisterUserRoutes(router)
+	// Capa de Interfaz: handlers HTTP
+	userHandler := http.NewUserHandler(userUseCase)
+	accountHandler := http.NewAccountHandler(accountUseCase)
 
-	// Aquí irían otras rutas (auth, accounts, transfers, etc)
+	return &AppContainer{
+		UserRepo:       userRepo,
+		AccountRepo:    accountRepo,
+		UserUseCase:    userUseCase,
+		AccountUseCase: accountUseCase,
+		UserHandler:    userHandler,
+		AccountHandler: accountHandler,
+	}
+}
+
+// SetupRoutes configura todas las rutas de la aplicación.
+func SetupRoutes(container *AppContainer) *gin.Engine {
+	router := gin.Default()
+
+	// Registrar rutas
+	http.RegisterUserRoutes(router, container.UserHandler)
+	http.RegisterAccountRoutes(router, container.AccountHandler)
 
 	return router
 }

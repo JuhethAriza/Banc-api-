@@ -5,20 +5,26 @@ import (
 	"gorm.io/gorm"
 )
 
-var DB *gorm.DB
+// DB es un wrapper alrededor de gorm.DB para facilitar testing y abstracción.
+type DB struct {
+	instance *gorm.DB
+}
 
-func ConnectDatabase(GetDatabaseURL func() string) error {
+// Instance devuelve la instancia subyacente de gorm.DB.
+func (d *DB) Instance() *gorm.DB {
+	return d.instance
+}
 
+// ConnectDatabase conecta a la base de datos y devuelve un wrapper DB.
+func ConnectDatabase(getDatabaseURL func() string) (*DB, error) {
 	db, err := gorm.Open(
-		postgres.Open(GetDatabaseURL()),
+		postgres.Open(getDatabaseURL()),
 		&gorm.Config{},
 	)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	DB = db
-
-	return nil
+	return &DB{instance: db}, nil
 }

@@ -1,9 +1,8 @@
-package rol
+package valueobject
 
 import "strings"
 
 // Role representa un tipo de usuario dentro del sistema.
-// Se usa para asignar permisos y controlar qué operaciones puede hacer cada usuario.
 type Role string
 
 // Permission define una acción específica que puede ser permitida o denegada.
@@ -66,7 +65,6 @@ func (r Role) String() string {
 }
 
 // ParseRole normaliza un valor de texto a un rol válido.
-// Devuelve el rol y un booleano indicando si el valor era válido.
 func ParseRole(value string) (Role, bool) {
 	normalized := Role(strings.ToLower(strings.TrimSpace(value)))
 	switch normalized {
@@ -89,7 +87,6 @@ func (r Role) AllowedPermissions() []Permission {
 	if !ok {
 		return nil
 	}
-
 	list := make([]Permission, 0, len(perms))
 	for p := range perms {
 		list = append(list, p)

@@ -5,6 +5,7 @@ import (
 	"banc-api/internal"
 	"banc-api/migrations"
 	"banc-api/pkg/database"
+	"log"
 )
 
 func main() {
@@ -12,19 +13,25 @@ func main() {
 	config.LoadEnv()
 
 	// 2. Conectar a la base de datos
-	err := database.ConnectDatabase(config.GetDatabaseURL)
+	db, err := database.ConnectDatabase(config.GetDatabaseURL)
 	if err != nil {
-		panic("No se pudo conectar a la base de datos: " + err.Error())
+		log.Fatal("No se pudo conectar a la base de datos: " + err.Error())
 	}
 
 	// 3. Ejecutar migraciones
-	if err := migrations.RunMigrations(); err != nil {
-		panic("No se pudieron ejecutar las migraciones: " + err.Error())
+	if err := migrations.RunMigrations(db.Instance()); err != nil {
+		log.Fatal("No se pudieron ejecutar las migraciones: " + err.Error())
 	}
 
-	// 4. Configurar rutas (aquí se inicializan todas las capas)
-	r := internal.SetupRoutes()
+	// 4. Inicializar contenedor de dependencias
+	container := internal.NewAppContainer(db)
 
-	// 5. Iniciar servidor
-	r.Run(":8080")
+	// 5. Configurar rutas (registrando handlers desde el container)
+	r := internal.SetupRoutes(container)
+
+	// 6. Iniciar servidor
+	log.Println("Servidor iniciado en :8080")
+	if err := r.Run(":8080"); err != nil {
+		log.Fatal("Error al iniciar el servidor: " + err.Error())
+	}
 }
