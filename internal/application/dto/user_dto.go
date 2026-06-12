@@ -1,7 +1,5 @@
 package dto
 
-import "banc-api/internal/domain/valueobject"
-
 // CreateUserRequest representa la petición para crear un usuario.
 type CreateUserRequest struct {
 	Username string `json:"username" binding:"required"`
@@ -20,9 +18,8 @@ type UpdateUserRequest struct {
 
 // UserResponse representa la respuesta de usuario sin datos sensibles.
 type UserResponse struct {
-	ID              uint               `json:"id"`
-	Username        string             `json:"username"`
-	Email           string             `json:"email"`
-	Role            valueobject.Role   `json:"role"`
-	FechadeCreacion string             `json:"fecha_creacion"`
+	ID              uint   `json:"id"`
+	Username        string `json:"username"`
+	Email           string `json:"email"`
+	FechadeCreacion string `json:"fecha_creacion"`
 }

@@ -4,8 +4,6 @@ import (
 	"banc-api/internal/application/dto"
 	"banc-api/internal/domain/entity"
 	"banc-api/internal/domain/repository"
-	"banc-api/internal/domain/valueobject"
-	"errors"
 	"time"
 )
 
@@ -39,7 +37,6 @@ func (uc *UserUseCase) GetUsers() ([]dto.UserResponse, error) {
 			ID:              u.ID,
 			Username:        u.Username,
 			Email:           u.Email,
-			Role:            u.Role,
 			FechadeCreacion: u.FechadeCreacion,
 		}
 	}
@@ -57,7 +54,6 @@ func (uc *UserUseCase) GetUserByID(id uint) (*dto.UserResponse, error) {
 		ID:              user.ID,
 		Username:        user.Username,
 		Email:           user.Email,
-		Role:            user.Role,
 		FechadeCreacion: user.FechadeCreacion,
 	}
 	return &response, nil
@@ -65,21 +61,12 @@ func (uc *UserUseCase) GetUserByID(id uint) (*dto.UserResponse, error) {
 
 // CreateUser crea un nuevo usuario.
 func (uc *UserUseCase) CreateUser(req dto.CreateUserRequest) (*dto.UserResponse, error) {
-	// Validar rol
-	newRole, validRole := valueobject.ParseRole(req.Role)
-	if !validRole && req.Role != "" {
-		return nil, errors.New("rol de usuario inválido")
-	}
-	if req.Role == "" {
-		newRole = valueobject.RoleUser
-	}
 
 	// Crear entidad
 	user := &entity.User{
 		Username:        req.Username,
 		Email:           req.Email,
 		Password:        req.Password, // TODO: hashear password
-		Role:            newRole,
 		FechadeCreacion: time.Now().Format(time.RFC3339),
 	}
 
@@ -91,7 +78,6 @@ func (uc *UserUseCase) CreateUser(req dto.CreateUserRequest) (*dto.UserResponse,
 		ID:              user.ID,
 		Username:        user.Username,
 		Email:           user.Email,
-		Role:            user.Role,
 		FechadeCreacion: user.FechadeCreacion,
 	}
 	return &response, nil
@@ -114,13 +100,6 @@ func (uc *UserUseCase) UpdateUser(id uint, req dto.UpdateUserRequest) (*dto.User
 	if req.Password != "" {
 		user.Password = req.Password // TODO: hashear password
 	}
-	if req.Role != "" {
-		updatedRole, validRole := valueobject.ParseRole(req.Role)
-		if !validRole || updatedRole == valueobject.RoleGuest {
-			return nil, errors.New("rol de usuario inválido")
-		}
-		user.Role = updatedRole
-	}
 
 	if err := uc.userRepo.Update(user); err != nil {
 		return nil, err
@@ -130,7 +109,6 @@ func (uc *UserUseCase) UpdateUser(id uint, req dto.UpdateUserRequest) (*dto.User
 		ID:              user.ID,
 		Username:        user.Username,
 		Email:           user.Email,
-		Role:            user.Role,
 		FechadeCreacion: user.FechadeCreacion,
 	}
 	return &response, nil
